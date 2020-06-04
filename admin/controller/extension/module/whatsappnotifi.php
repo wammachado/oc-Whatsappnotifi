@@ -112,7 +112,7 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 		$data['stores'][] = array(
 			'store_id' => 0,
 			'name'     => $this->language->get('text_default'),
-			"module_whatsappnotifi_store" => $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_store") ? $this->model_extension_module_whatsappnotifi->select($store['store_id'], "module_whatsappnotifi_store")["value"] : "0",
+			"module_whatsappnotifi_store" => $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_store") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_store")["value"] : "0",
 			
 		);			
 

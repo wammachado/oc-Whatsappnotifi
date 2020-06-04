@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+    <name>Notificação Whatsapp</name>
+    <link>https://ideiatecnologia.com.br</link>
+    <author>Wender Afonso, wender.martins@ideiatecnologia.com.br, wender@fomatoagencia.com.br, wammachado@gmail.com</author>
+    <code>whatsappnotifi</code>
+    <version>1.0.0</version>
+    <file path="catalog/controller/mail/order.php">
+        <operation>
+            <search>
+                <![CDATA[                    
+                    public function alert(&$route, &$args) {
+                ]]>
+            </search>
+            <add position="before">
+                <![CDATA[
+                    //adaptação modulo whatsapp
+                    public function sendmsg($instance,$token,$phone,$body){
+
+                        $url = "https://eu120.chat-api.com/$instance/sendMessage?token=$token";
+
+                        $data = array("phone" => "$phone","body" => "$body");
+
+                        $postdata = json_encode($data);
+
+                        $ch = curl_init($url);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                        curl_setopt($ch, CURLOPT_POST, 1);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                        $result = curl_exec($ch);
+                        curl_close($ch);
+                        //return $result;
+                    }
+                ]]>            
+            </add>
+        </operation>
+        <operation>
+            <search>
+                <![CDATA[$mail->setText($this->load->view('mail/order_edit', $data));]]>
+            </search>
+            <add position="replace">
+                 <![CDATA[$mail->setHtml($this->load->view('mail/order_edit', $data));]]>          
+            </add>
+        </operation>
+        <operation>
+            <search>
+                <![CDATA[$mail->setHtml($this->load->view('mail/order_add', $data));]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+                    //notifica whatsapp
+                    if ($this->config->get('module_whatsappnotifi_status')) {
+                        
+                        $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
+                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);                        
+                        
+                        if($module_whatsappnotifi_store){
+
+                            $store_info = $this->model_setting_setting->getSetting('config', $order_info["store_id"]);
+
+                            $namestore = $store_info["config_name"];
+                            $nameclient = $order_info["firstname"];
+                            $orderid = $order_info["order_id"];
+                            $orderstatus = $data['order_status'];
+                
+                            $telephone = $store_info['config_fax'];
+                            $telephone = preg_replace("/[^0-9.]/", "", $telephone);
+                            $qttelephone = strlen($telephone);
+                            
+                            $telephonecli = $order_info['telephone'];
+                            $telephonecli = preg_replace("/[^0-9.]/", "", $telephonecli);
+                            $qttelephonecli = strlen($telephonecli);
+                            
+                            if($qttelephone == 11){
+                                $telephone = "55".$telephone;
+                            }
+                            
+                            if($qttelephonecli == 11){
+                                $telephonecli = "55".$telephonecli;
+                            }
+
+                            $text_date_added = $data["text_date_added"];
+                            $date_added = $data["date_added"];
+                            
+                            $text_payment_method = $data["text_payment_method"];
+                            $payment_method = $data["payment_method"];
+
+                            $text_order_status = $data["text_order_status"];
+                            $order_status = $data["order_status"];
+                            
+                            //$comment = "";
+                            $text_instruction = "";
+
+                            if($order_info["comment"]){
+                                $text_instruction = "Obs:";
+                                $comment = $order_info["comment"];
+                                $comment = "*$text_instruction* $comment \n\n";
+                            }
+
+                            $text_shipping_address = $data["text_shipping_address"];
+                            $shipping_address = str_replace("<br />","\n",$data["shipping_address"]);
+                            
+                            $products = $data["products"];
+
+                            $text_product = "Item(ns)";
+
+                            $txtproduct = "";
+
+                            foreach($products as $product){
+                                $product_name = $product["name"];
+                                $product_quantity = $product["quantity"];
+                                $product_price = $product["price"];
+                                $product_total = $product["total"];
+                                $txtproduct .= "*Produto:* $product_name \n*Quantidade:* $product_quantity \n*Preco:* $product_price \n*Subtotal:* $product_total \n\n";
+                            }
+
+                            $totals = $data["totals"];
+
+                            $texttotals = "";
+
+                            foreach($totals as $total){
+                                $totaltitle = $total["title"];
+                                $totaltext =  $total["text"];
+                                $texttotals .= "*$totaltitle:* $totaltext \n\n";
+                            }
+                            
+                            $mailclient = $order_info['email'];
+                            $nameclient = $order_info['shipping_firstname']." ".$order_info['shipping_lastname'];
+
+                            $dadoscliente = "*Nome:* $nameclient \n*Telefone:* $telephonecli \n*Email:* $mailclient";
+
+                            $dadospedido = "*$text_date_added* $date_added \n\n$dadoscliente \n\n*$text_payment_method* $payment_method \n\n*$text_order_status* $order_status \n\n*$text_shipping_address:*\n $shipping_address \n\n$comment *$text_product:*\n $txtproduct \n\n$texttotals";
+                            
+                            $msgcli = "Olá $nameclient,\n\nRecebemos seu pedido *nro. #$orderid*  Seguem abaixo os dados de seu pedido: $dadospedido";
+                            $msgcli = urlencode($msgcli);
+
+                            $link = "https://wa.me/$telephonecli/?text=$msgcli";
+
+                            $msgstore = "Olá *$namestore*,\n\nUm novo pedido *Nro. #$orderid.*\nfoi efetuado no Delivery!\n*Seguem dados do pedido:* \n$dadospedido.
+                            \n\nPara informar ao cliente clique no link: $link";
+
+                            @$this->sendmsg($module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephone,$msgstore);
+
+                        }
+                        
+                    }		
+                    //notifica whatsapp
+                ]]>
+            </add>
+        </operation>
+        <operation>
+            <search>
+                <![CDATA[$mail->setHtml($this->load->view('mail/order_edit', $data));]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+                    //notifica whatsapp
+                    if ($this->config->get('module_whatsappnotifi_status')) {
+                        
+                        $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
+                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);
+                        
+                        if($module_whatsappnotifi_store){
+                            
+                            $store_info = $this->model_setting_setting->getSetting('config', $order_info["store_id"]);
+
+                            $namestore = $store_info["config_name"];
+                            $nameclient = $order_info["firstname"];
+                            $orderid = $order_info["order_id"];
+                            $orderstatus = $data['order_status'];
+                
+                            $telephone = $store_info['config_fax'];
+                            $telephone = preg_replace("/[^0-9.]/", "", $telephone);
+                            $qttelephone = strlen($telephone);
+                
+                            $telephonecli = $order_info['telephone'];
+                            $telephonecli = preg_replace("/[^0-9.]/", "", $telephonecli);
+                            $qttelephonecli = strlen($telephonecli);
+                            
+                            if($qttelephone == 11){
+                                $telephone = "55".$telephone;
+                            }
+                            
+                            if($qttelephonecli == 11){
+                                $telephonecli = "55".$telephonecli;
+                            }
+                            
+                            $txtcomment = "";
+                
+                            if($comment){
+                                $comment = strip_tags($comment);
+                                $txtcomment = "\n*Obs:".$comment."*";
+                            }
+                            
+                            $msgcli = "Olá $nameclient,\n\nSeu pedido *nro. #$orderid*  foi atualizado para a seguinte situação: *$orderstatus* . $txtcomment";
+                            $msgcli = urlencode($msgcli);
+
+                            $link = "https://wa.me/$telephonecli/?text=$msgcli";			
+                
+                            $msgstore = "Olá $namestore,\n\nO pedido *nro. #$orderid* foi atualizado para a seguinte situação: *$orderstatus* .\n\nPara informar ao cliente clique no link: $link";
+                
+                            @$this->sendmsg($module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephone,$msgstore);
+                        }                        
+                    }
+                    
+                    //notifica whatsapp
+                ]]>            
+            </add>
+        </operation>
+      
+    </file>
+</modification>
