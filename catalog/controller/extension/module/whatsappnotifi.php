@@ -1,9 +1,9 @@
 <?php
 class ControllerExtensionModuleWhatsappnotifi extends Controller
 {
-    public function sendmsg($instance,$token,$phone,$body){
+    public function sendmsg($urldefault, $instance,$token,$phone,$body){
 
-		$url = "https://eu120.chat-api.com/$instance/sendMessage?token=$token";
+		    $url = "$urldefault/$instance/sendMessage?token=$token";
 
         $data = array("phone" => "$phone","body" => "$body");
 

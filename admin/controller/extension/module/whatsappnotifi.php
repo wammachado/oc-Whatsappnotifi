@@ -30,6 +30,14 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 			//salva numero de fone da instancia
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
+				"key"=>"module_whatsappnotifi_url",
+				"value"=>$this->request->post["module_whatsappnotifi_url"]
+			);
+			
+			$this->model_extension_module_whatsappnotifi->status($datasave);
+
+			$datasave = array(
+				"code"=>"module_whatsappnotifi",
 				"key"=>"module_whatsappnotifi_numero",
 				"value"=>$this->request->post["module_whatsappnotifi_numero"]
 			);
@@ -100,6 +108,7 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 
 		$this->load->model('setting/store');
 		
+		$data["module_whatsappnotifi_url"]= ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_url") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_url")["value"] : "");
 		$data["module_whatsappnotifi_numero"]= ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_numero") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_numero")["value"] : "");
 		$data["module_whatsappnotifi_instance"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_instance") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_instance")["value"] : "");
 		$data["module_whatsappnotifi_token"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_token") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_token")["value"]: "");
@@ -141,6 +150,8 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 	}
 
 	public function testsend(){
+		
+		
 
 		$instance = $this->request->post["instance"];
 		$token = $this->request->post["token"];
@@ -160,7 +171,12 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 	
 	public function sendmsg($instance,$token,$phone,$body){
 
-		$url = "https://eu120.chat-api.com/$instance/sendMessage?token=$token";
+		$this->load->model('setting/setting');
+		$this->load->model('extension/module/whatsappnotifi');
+		
+		$urldefault = $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_url");
+
+		$url = "{$urldefault}/{$instance}/sendMessage?token={$token}";
 
         $data = array("phone" => "$phone","body" => "$body");
 

@@ -15,9 +15,9 @@
             <add position="before">
                 <![CDATA[
                     //adaptação modulo whatsapp
-                    public function sendmsg($instance,$token,$phone,$body){
+                    public function sendmsg($urldefault,$instance,$token,$phone,$body){
 
-                        $url = "https://eu120.chat-api.com/$instance/sendMessage?token=$token";
+                        $url = "$urldefault/$instance/sendMessage?token=$token";
 
                         $data = array("phone" => "$phone","body" => "$body");
 
@@ -57,6 +57,7 @@
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
                         $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);                        
                         $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);                        
                         
                         if($module_whatsappnotifi_store){
@@ -134,17 +135,61 @@
 
                             $dadoscliente = "*Nome:* $nameclient \n*Telefone:* $telephonecli \n*Email:* $mailclient";
 
-                            $dadospedido = "*$text_date_added* $date_added \n\n$dadoscliente \n\n*$text_payment_method* $payment_method \n\n*$text_order_status* $order_status \n\n*$text_shipping_address:*\n $shipping_address \n\n$comment *$text_product:*\n $txtproduct \n\n$texttotals";
+                            $dadospedido = "*$text_date_added* $date_added \n\n$dadoscliente \n\n*$text_payment_method* $payment_method \n\n*$text_order_status* $order_status \n\n*$text_shipping_address:*\n $shipping_address \n\n$comment\n\n *$text_product:*\n $txtproduct \n\n$texttotals";
                             
                             $msgcli = "Olá $nameclient,\n\nRecebemos seu pedido *nro. #$orderid*  Seguem abaixo os dados de seu pedido: $dadospedido";
-                            $msgcli = urlencode($msgcli);
+                            
+                            $htmlDom = new DOMDocument;
+
+                            @$htmlDom->loadHTML($msgcli);
+
+                            $links = $htmlDom->getElementsByTagName('a');
+                            $extractedLinks = [];
+
+                            if (count($links) > 0) {
+                                foreach ($links as $link) {
+
+                                    $linkText = $link->nodeValue;
+
+                                    $linkHref = $link->getAttribute('href');
+
+                                    if (strlen(trim($linkHref)) == 0) {
+                                        continue;
+                                    }
+
+                                    if ($linkHref[0] == '#') {
+                                        continue;
+                                    }
+
+                                    $extractedLinks[] = array(
+                                        'href' => $linkHref,
+                                    );
+
+                                }
+                            }
+
+                            $msgcli = str_replace("<br>", "\n", $msgcli);
+                            $msgcli = str_replace("<b>", "*", $msgcli);
+                            $msgcli = str_replace("</b>", "*", $msgcli);
+                            $msgcli = str_replace("</strong>", "*", $msgcli);
+                            $msgcli = str_replace("<strong>", "*", $msgcli);
+                            $msgcli = strip_tags($msgcli);
+
+                            if (count($extractedLinks) > 0) {
+
+                                foreach ($extractedLinks as $links) {
+
+                                    $msgcli .= "\n" . $links["href"];
+
+                                }
+                            }
 
                             $link = "https://wa.me/$telephonecli/?text=$msgcli";
 
                             $msgstore = "Olá *$namestore*,\n\nUm novo pedido *Nro. #$orderid.*\nfoi efetuado no Delivery!\n*Seguem dados do pedido:* \n$dadospedido.
                             \n\nPara informar ao cliente clique no link: $link";
 
-                            @$this->sendmsg($module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephone,$msgstore);
+                            @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephonecli,$msgcli);
 
                         }
                         
@@ -164,6 +209,7 @@
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
                         $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);
                         $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);
                         
                         if($module_whatsappnotifi_store){
@@ -199,13 +245,58 @@
                             }
                             
                             $msgcli = "Olá $nameclient,\n\nSeu pedido *nro. #$orderid*  foi atualizado para a seguinte situação: *$orderstatus* . $txtcomment";
-                            $msgcli = urlencode($msgcli);
+
+                            $htmlDom = new DOMDocument;
+
+                            @$htmlDom->loadHTML($msgcli);
+
+                            $links = $htmlDom->getElementsByTagName('a');
+                            $extractedLinks = [];
+
+                            if (count($links) > 0) {
+                                foreach ($links as $link) {
+
+                                    $linkText = $link->nodeValue;
+
+                                    $linkHref = $link->getAttribute('href');
+
+                                    if (strlen(trim($linkHref)) == 0) {
+                                        continue;
+                                    }
+
+                                    if ($linkHref[0] == '#') {
+                                        continue;
+                                    }
+
+                                    $extractedLinks[] = array(
+                                        'href' => $linkHref,
+                                    );
+
+                                }
+                            }
+
+                            $msgcli = str_replace("<br>", "\n", $msgcli);
+                            $msgcli = str_replace("<b>", "*", $msgcli);
+                            $msgcli = str_replace("</b>", "*", $msgcli);
+                            $msgcli = str_replace("</strong>", "*", $msgcli);
+                            $msgcli = str_replace("<strong>", "*", $msgcli);
+                            $msgcli = strip_tags($msgcli);
+
+                            if (count($extractedLinks) > 0) {
+
+                                foreach ($extractedLinks as $links) {
+
+                                    $msgcli .= "\n" . $links["href"];
+
+                                }
+                            }
+
 
                             $link = "https://wa.me/$telephonecli/?text=$msgcli";			
                 
                             $msgstore = "Olá $namestore,\n\nO pedido *nro. #$orderid* foi atualizado para a seguinte situação: *$orderstatus* .\n\nPara informar ao cliente clique no link: $link";
                 
-                            @$this->sendmsg($module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephone,$msgstore);
+                            @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephonecli,$msgcli);
                         }                        
                     }
                     

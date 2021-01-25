@@ -43,6 +43,9 @@
                             </label>
                            
                             <div class="col-sm-2">
+                                <input class="form-control" placeholder="URL padrão api" id="module_whatsappnotifi_url" type="text" name="module_whatsappnotifi_url" value="{{ module_whatsappnotifi_url }}"/>
+                            </div>
+                            <div class="col-sm-2">
                                 <input class="form-control" placeholder="Whatsapp cadastrado na api" id="module_whatsappnotifi_numero" type="text" name="module_whatsappnotifi_numero" value="{{ module_whatsappnotifi_numero }}"/>
                             </div>
                             <div class="col-sm-2">
@@ -61,9 +64,7 @@
                                     <option value="0" selected="selected">{{ text_disabled }}</option>
                                     {% endif %}
                                 </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <button type="button" id="btnvalida" onclick="verificastatus()" class="btn btn-primary">Verificar</button>
+                                <button type="button" id="btnvalida" onclick="verificastatus()" class="btn btn-primary btn-block">Verificar</button>
                             </div>
                         </div>
                     </div>
@@ -99,6 +100,7 @@
 <script>
 function verificastatus(){
 
+    var urldefault = $("#module_whatsappnotifi_url").val();
     var numero = $("#module_whatsappnotifi_numero").val();
     var instance = $("#module_whatsappnotifi_instance").val();
     var token = $("#module_whatsappnotifi_token").val();
@@ -114,7 +116,7 @@ function verificastatus(){
         return false;
     }
 
-    var url = "https://api.chat-api.com/"+instance+"/status?token="+token;
+    var url = urldefault+"/"+instance+"/status?token="+token;
 
     $.getJSON(url, function(data, textStatus, jqXHR){
            // alert(data.accountStatus);
