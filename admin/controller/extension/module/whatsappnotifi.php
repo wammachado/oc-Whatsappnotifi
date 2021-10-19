@@ -56,6 +56,15 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 			//salva token da api
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
+				"key"=>"module_whatsappnotifi_notificaloja",
+				"value"=>$this->request->post["module_whatsappnotifi_notificaloja"]
+			);
+
+			$this->model_extension_module_whatsappnotifi->status($datasave);
+			
+			//salva se notifica loja
+			$datasave = array(
+				"code"=>"module_whatsappnotifi",
 				"key"=>"module_whatsappnotifi_token",
 				"value"=>$this->request->post["module_whatsappnotifi_token"]
 			);
@@ -113,6 +122,7 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 		$data["module_whatsappnotifi_instance"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_instance") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_instance")["value"] : "");
 		$data["module_whatsappnotifi_token"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_token") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_token")["value"]: "");
 		$data["module_whatsappnotifi_status"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_status") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_status")["value"]:"");
+		$data["module_whatsappnotifi_notificaloja"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_notificaloja") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_notificaloja")["value"]:"");
 
 		$data['stores'] = array();
 		

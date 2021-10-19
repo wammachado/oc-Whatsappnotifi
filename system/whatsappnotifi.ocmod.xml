@@ -5,7 +5,7 @@
     <author>Wender Afonso, wender.martins@ideiatecnologia.com.br, wender@fomatoagencia.com.br, wammachado@gmail.com</author>
     <code>whatsappnotifi</code>
     <version>1.0.0</version>
-    <file path="catalog/controller/mail/order.php">
+    <file path="catalog/controller/mail/order.php">              
         <operation>
             <search>
                 <![CDATA[                    
@@ -16,6 +16,7 @@
                 <![CDATA[
                     //adaptação modulo whatsapp
                     public function sendmsg($urldefault,$instance,$token,$phone,$body){
+                        
 
                         $url = "$urldefault/$instance/sendMessage?token=$token";
 
@@ -37,15 +38,7 @@
                     }
                 ]]>            
             </add>
-        </operation>
-        <operation>
-            <search>
-                <![CDATA[$mail->setText($this->load->view('mail/order_edit', $data));]]>
-            </search>
-            <add position="replace">
-                 <![CDATA[$mail->setHtml($this->load->view('mail/order_edit', $data));]]>          
-            </add>
-        </operation>
+        </operation>        
         <operation>
             <search>
                 <![CDATA[$mail->setHtml($this->load->view('mail/order_add', $data));]]>
@@ -53,6 +46,7 @@
             <add position="after">
                 <![CDATA[
                     //notifica whatsapp
+                    $enviawhatsapp =  false;
                     if ($this->config->get('module_whatsappnotifi_status')) {
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
@@ -131,13 +125,13 @@
                             }
                             
                             $mailclient = $order_info['email'];
-                            $nameclient = $order_info['shipping_firstname']." ".$order_info['shipping_lastname'];
+                            $nameclient = $order_info['payment_firstname']." ".$order_info['payment_lastname'];
 
                             $dadoscliente = "*Nome:* $nameclient \n*Telefone:* $telephonecli \n*Email:* $mailclient";
 
-                            $dadospedido = "*$text_date_added* $date_added \n\n$dadoscliente \n\n*$text_payment_method* $payment_method \n\n*$text_order_status* $order_status \n\n*$text_shipping_address:*\n $shipping_address \n\n$comment\n\n *$text_product:*\n $txtproduct \n\n$texttotals";
+                            $dadospedido = "*$text_date_added* $date_added \n\n$dadoscliente \n\n*$text_payment_method* $payment_method \n\n*$text_order_status* $order_status \n\n*$text_shipping_address:* \n$shipping_address \n\n$comment \n\n*$text_product:* \n$txtproduct \n\n$texttotals";
                             
-                            $msgcli = "Olá $nameclient,\n\nRecebemos seu pedido *nro. #$orderid*  Seguem abaixo os dados de seu pedido: $dadospedido";
+                            $msgcli = "Olá $nameclient,\n\nRecebemos seu pedido *nro. #$orderid* \nSeguem abaixo os dados de seu pedido: \n$dadospedido";
                             
                             $htmlDom = new DOMDocument;
 
@@ -186,10 +180,12 @@
 
                             $link = "https://wa.me/$telephonecli/?text=$msgcli";
 
-                            $msgstore = "Olá *$namestore*,\n\nUm novo pedido *Nro. #$orderid.*\nfoi efetuado no Delivery!\n*Seguem dados do pedido:* \n$dadospedido.
+                            $msgstore = "Olá *$namestore*,\n\nUm novo pedido *Nro. #$orderid.*\nfoi efetuado no Site!\n*Seguem dados do pedido:* \n$dadospedido.
                             \n\nPara informar ao cliente clique no link: $link";
 
-                            @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephonecli,$msgcli);
+                            $enviawhatsapp =  true;
+
+                            
 
                         }
                         
@@ -197,7 +193,7 @@
                     //notifica whatsapp
                 ]]>
             </add>
-        </operation>
+        </operation>        
         <operation>
             <search>
                 <![CDATA[$mail->setHtml($this->load->view('mail/order_edit', $data));]]>
@@ -205,6 +201,7 @@
             <add position="after">
                 <![CDATA[
                     //notifica whatsapp
+                    $enviawhatsapp = false;
                     if ($this->config->get('module_whatsappnotifi_status')) {
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
@@ -295,13 +292,143 @@
                             $link = "https://wa.me/$telephonecli/?text=$msgcli";			
                 
                             $msgstore = "Olá $namestore,\n\nO pedido *nro. #$orderid* foi atualizado para a seguinte situação: *$orderstatus* .\n\nPara informar ao cliente clique no link: $link";
+                            $enviawhatsapp = true;
                 
-                            @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephonecli,$msgcli);
+                            
                         }                        
                     }
                     
                     //notifica whatsapp
                 ]]>            
+            </add>
+        </operation>
+        <operation>
+            <search>
+                <![CDATA[$mail->setHtml($this->load->view('mail/order_alert', $data));]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+                    //notifica whatsapp
+                    $enviawhatsapp = false;
+                    if ($this->config->get('module_whatsappnotifi_status')) {
+                        
+                        $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
+                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);
+                        $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);
+                        
+                        if($module_whatsappnotifi_store){
+                            
+                            $store_info = $this->model_setting_setting->getSetting('config', $order_info["store_id"]);
+
+                            $namestore = $store_info["config_name"];
+                            $nameclient = $order_info["firstname"];
+                            $orderid = $order_info["order_id"];
+                            $orderstatus = $data['order_status'];
+                
+                            $telephone = $store_info['config_fax'];
+                            $telephone = preg_replace("/[^0-9.]/", "", $telephone);
+                            $qttelephone = strlen($telephone);
+                
+                            $telephonecli = $order_info['telephone'];
+                            $telephonecli = preg_replace("/[^0-9.]/", "", $telephonecli);
+                            $qttelephonecli = strlen($telephonecli);
+                            
+                            if($qttelephone == 11){
+                                $telephone = "55".$telephone;
+                            }
+                            
+                            if($qttelephonecli == 11){
+                                $telephonecli = "55".$telephonecli;
+                            }
+                            
+                            $txtcomment = "";
+                
+                            if($comment){
+                                $comment = strip_tags($comment);
+                                $txtcomment = "\n*Obs:".$comment."*";
+                            }
+                            
+                            $msgcli = "Olá $nameclient,\n\nSeu pedido *nro. #$orderid*  foi atualizado para a seguinte situação: *$orderstatus* . $txtcomment";
+
+                            $htmlDom = new DOMDocument;
+
+                            @$htmlDom->loadHTML($msgcli);
+
+                            $links = $htmlDom->getElementsByTagName('a');
+                            $extractedLinks = [];
+
+                            if (count($links) > 0) {
+                                foreach ($links as $link) {
+
+                                    $linkText = $link->nodeValue;
+
+                                    $linkHref = $link->getAttribute('href');
+
+                                    if (strlen(trim($linkHref)) == 0) {
+                                        continue;
+                                    }
+
+                                    if ($linkHref[0] == '#') {
+                                        continue;
+                                    }
+
+                                    $extractedLinks[] = array(
+                                        'href' => $linkHref,
+                                    );
+
+                                }
+                            }
+
+                            $msgcli = str_replace("<br>", "\n", $msgcli);
+                            $msgcli = str_replace("<b>", "*", $msgcli);
+                            $msgcli = str_replace("</b>", "*", $msgcli);
+                            $msgcli = str_replace("</strong>", "*", $msgcli);
+                            $msgcli = str_replace("<strong>", "*", $msgcli);
+                            $msgcli = strip_tags($msgcli);
+
+                            if (count($extractedLinks) > 0) {
+
+                                foreach ($extractedLinks as $links) {
+
+                                    $msgcli .= "\n" . $links["href"];
+
+                                }
+                            }
+
+
+                            $link = "https://wa.me/$telephonecli/?text=$msgcli";			
+                
+                            $msgstore = "Olá $namestore,\n\nO pedido *nro. #$orderid* foi atualizado para a seguinte situação: *$orderstatus* .\n\nPara informar ao cliente clique no link: $link";
+                            $enviawhatsapp = true;
+                
+                            
+                        }                        
+                    }
+                    
+                    //notifica whatsapp
+                ]]>            
+            </add>
+        </operation>
+        <operation>
+            <search>
+                <![CDATA[$mail->send();]]>
+            </search>
+            <add position="replace">
+                 <![CDATA[
+                 @$mail->send();
+                    
+                 if($enviawhatsapp){
+                    @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephonecli,$msgcli); 
+
+                    if ($this->config->get('module_whatsappnotifi_notificaloja')) {
+                        @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephone,$msgstore); 
+                    } 
+
+                    $enviawhatsapp = false;
+                 }
+
+                 ]]>          
             </add>
         </operation>
       

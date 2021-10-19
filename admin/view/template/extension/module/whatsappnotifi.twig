@@ -36,25 +36,46 @@
                     <!-- config do envio-->
                     <div class="row">
                         <div class="form-group col-sm-12">
-                            <label class="col-sm-2 control-label" for="input-entry-key">
+                            <label class="col-sm-2 control-label " for="input-entry-key">
                                 <span data-toggle="tooltip" title="" data-original-title="Informe os dados da api. consulte em: <b>https://app.chat-api.com/</b>">
                                     Dados da api:
                                 </span>
                             </label>
                            
+                        </div>
+                        <div class="form-group col-sm-12">
                             <div class="col-sm-2">
+                                <label>URL padrão api:</label>
                                 <input class="form-control" placeholder="URL padrão api" id="module_whatsappnotifi_url" type="text" name="module_whatsappnotifi_url" value="{{ module_whatsappnotifi_url }}"/>
                             </div>
                             <div class="col-sm-2">
+                                <label>Whatsapp cada. na api:</label>
                                 <input class="form-control" placeholder="Whatsapp cadastrado na api" id="module_whatsappnotifi_numero" type="text" name="module_whatsappnotifi_numero" value="{{ module_whatsappnotifi_numero }}"/>
                             </div>
                             <div class="col-sm-2">
+                                <label>Instância:</label>
                                 <input class="form-control" placeholder="Instância" id="module_whatsappnotifi_instance" type="text" name="module_whatsappnotifi_instance" value="{{ module_whatsappnotifi_instance }}"/>
                             </div>
                             <div class="col-sm-2">
+                                <label>Token:</label>
                                 <input class="form-control" placeholder="Token" id="module_whatsappnotifi_token" type="text" name="module_whatsappnotifi_token" value="{{ module_whatsappnotifi_token }}"/>
                             </div>
                             <div class="col-sm-2">
+                                
+                                <label>Notificar Loja:</label>
+                                <select name="module_whatsappnotifi_notificaloja" class="form-control">
+                                    {% if module_whatsappnotifi_notificaloja %}
+                                    <option value="1" selected="selected">{{ text_enabled }}</option>
+                                    <option value="0">{{ text_disabled }}</option>
+                                    {% else %}
+                                    <option value="1">{{ text_enabled }}</option>
+                                    <option value="0" selected="selected">{{ text_disabled }}</option>
+                                    {% endif %}
+                                </select>
+                                
+                            </div>
+                            <div class="col-sm-2">
+                                <label>Status:</label>
                                 <select name="module_whatsappnotifi_status" class="form-control">
                                     {% if module_whatsappnotifi_status %}
                                     <option value="1" selected="selected">{{ text_enabled }}</option>
@@ -67,6 +88,7 @@
                                 <button type="button" id="btnvalida" onclick="verificastatus()" class="btn btn-primary btn-block">Verificar</button>
                             </div>
                         </div>
+
                     </div>
                     <div id="retonovalidacao{{ store.store_id }}" class="alert alert-success col-sm-12 hidden"><i class="fa fa-exclamation-circle"></i>
                         <span id="retornovalidacaomsg{{ store.store_id }}"></span>
