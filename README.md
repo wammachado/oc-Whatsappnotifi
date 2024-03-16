@@ -1,7 +1,7 @@
 # oc-Whatsappnotifi
 Modulo Opencart para notificação via whatsapp
 
-Modulo utilizando api [https://fulltimechat.com.br](Full Time chat)
+Modulo utilizando api (Full Time chat)[https://fulltimechat.com.br]
 
 Suporte: contato@ftime.com.br
 
