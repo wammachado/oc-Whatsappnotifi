@@ -1,11 +1,16 @@
 <?php
 class ControllerExtensionModuleWhatsappnotifi extends Controller
 {
-    public function sendmsg($urldefault, $instance,$token,$phone,$body){
+    public function sendmsg($urldefault,$token, $openTicket, $queueId, $phone,$body){
 
-		    $url = "$urldefault/$instance/sendMessage?token=$token";
+        $url = $urldefault;
 
-        $data = array("phone" => "$phone","body" => "$body");
+        $data = array(
+            "number" => $phone,
+            "openTicket" => $openTicket,
+            "queueId" => $queueId,
+            "body" => $body
+        );
 
         $postdata = json_encode($data);
 
@@ -16,7 +21,11 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Content-Type: application/json',
+				'Authorization: Bearer '.$token
+				)
+			);
         $result = curl_exec($ch);
         curl_close($ch);
         return $result;

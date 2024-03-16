@@ -18,7 +18,7 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 			// var_dump($stores);die();
 			$this->model_extension_module_whatsappnotifi->clear();
 
-			//salva statuso do modulo
+			//salva status do modulo
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
 				"key"=>"module_whatsappnotifi_status",
@@ -27,7 +27,7 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 
 			$this->model_extension_module_whatsappnotifi->status($datasave);
 			
-			//salva numero de fone da instancia
+			//salva url da api
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
 				"key"=>"module_whatsappnotifi_url",
@@ -36,28 +36,29 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 			
 			$this->model_extension_module_whatsappnotifi->status($datasave);
 
+			// salva token
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
-				"key"=>"module_whatsappnotifi_numero",
-				"value"=>$this->request->post["module_whatsappnotifi_numero"]
+				"key"=>"module_whatsappnotifi_token",
+				"value"=>$this->request->post["module_whatsappnotifi_token"]
 			);
 
 			$this->model_extension_module_whatsappnotifi->status($datasave);
 			
-			//salva intancia da api
+			//salva oçao de ticket
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
-				"key"=>"module_whatsappnotifi_instance",
-				"value"=>$this->request->post["module_whatsappnotifi_instance"]
+				"key"=>"module_whatsappnotifi_openticket",
+				"value"=>$this->request->post["module_whatsappnotifi_openticket"]
 			);
 
 			$this->model_extension_module_whatsappnotifi->status($datasave);
 			
-			//salva token da api
+			//salva opcao de fila
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
-				"key"=>"module_whatsappnotifi_notificaloja",
-				"value"=>$this->request->post["module_whatsappnotifi_notificaloja"]
+				"key"=>"module_whatsappnotifi_queueid",
+				"value"=>$this->request->post["module_whatsappnotifi_queueid"]
 			);
 
 			$this->model_extension_module_whatsappnotifi->status($datasave);
@@ -65,8 +66,8 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 			//salva se notifica loja
 			$datasave = array(
 				"code"=>"module_whatsappnotifi",
-				"key"=>"module_whatsappnotifi_token",
-				"value"=>$this->request->post["module_whatsappnotifi_token"]
+				"key"=>"module_whatsappnotifi_notificaloja",
+				"value"=>$this->request->post["module_whatsappnotifi_notificaloja"]
 			);
 
 			$this->model_extension_module_whatsappnotifi->status($datasave);
@@ -118,9 +119,9 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 		$this->load->model('setting/store');
 		
 		$data["module_whatsappnotifi_url"]= ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_url") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_url")["value"] : "");
-		$data["module_whatsappnotifi_numero"]= ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_numero") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_numero")["value"] : "");
-		$data["module_whatsappnotifi_instance"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_instance") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_instance")["value"] : "");
 		$data["module_whatsappnotifi_token"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_token") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_token")["value"]: "");
+		$data["module_whatsappnotifi_openticket"]= ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_openticket") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_openticket")["value"] : "");
+		$data["module_whatsappnotifi_queueid"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_queueid") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_queueid")["value"] : "");
 		$data["module_whatsappnotifi_status"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_status") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_status")["value"]:"");
 		$data["module_whatsappnotifi_notificaloja"] = ($this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_notificaloja") ? $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_notificaloja")["value"]:"");
 
@@ -149,6 +150,7 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 
 		$data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
 
+		$data['urltest'] = $this->url->link('extension/module/whatsappnotifi/testsend', 'user_token=' . $this->session->data['user_token'], true);
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -162,36 +164,38 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
 	public function testsend(){
 		
 		
-
-		$instance = $this->request->post["instance"];
-		$token = $this->request->post["token"];
-		$sendto = $this->request->post["sendto"];
-		$message = $this->request->post["message"];
+		$urldefault = $this->request->post["module_whatsappnotifi_url"];
+		$sendto = $this->request->post["module_whatsappnotifi_testnumber"];
+		$token = $this->request->post["module_whatsappnotifi_token"];
+		$openTicket = $this->request->post["module_whatsappnotifi_openticket"];
+		$queueId = $this->request->post["module_whatsappnotifi_queueid"];
+		$message = "Envio ok";
 
 		// print_r("ok");
-		$send = $this->sendmsg($instance, $token,$sendto,$message);
+		$send = $this->sendmsg($sendto,$message, $token, $openTicket, $queueId, $urldefault);
 
-		if($send){
-			print_r('{"success":1,"message":"'.$send.'"');
-		}else{
-			print_r('{"success":0,"message":"'.$send.'"');
+		print_r($send);
 
-		}
+		
 	}
 	
-	public function sendmsg($instance,$token,$phone,$body){
+	private function sendmsg($phone,$body, $token, $openTicket, $queueId, $urldefault){
 
 		$this->load->model('setting/setting');
 		$this->load->model('extension/module/whatsappnotifi');
 		
-		$urldefault = $this->model_extension_module_whatsappnotifi->select(0, "module_whatsappnotifi_url");
 
-		$url = "{$urldefault}/{$instance}/sendMessage?token={$token}";
+		$url = "{$urldefault}";
 
-        $data = array("phone" => "$phone","body" => "$body");
+        $data = array(
+				"number" => $phone,
+				"openTicket" => $openTicket,
+				"queueId" => $queueId,
+		  		"body" => $body
+			);
 
         $postdata = json_encode($data);
-
+		  
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -199,9 +203,13 @@ class ControllerExtensionModuleWhatsappnotifi extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'token: '. $token.'',
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $token . '',
+        ));
         $result = curl_exec($ch);
-        curl_close($ch);
+        curl_close($ch);   
         return $result;
 
 

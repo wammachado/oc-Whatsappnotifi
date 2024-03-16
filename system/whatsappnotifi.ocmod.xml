@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modification>
     <name>Notificação Whatsapp</name>
-    <link>https://ideiatecnologia.com.br</link>
-    <author>Wender Afonso, wender.martins@ideiatecnologia.com.br, wender@fomatoagencia.com.br, wammachado@gmail.com</author>
+    <link>https://formatoagencia.com.br</link>
+    <author>Wender Afonso, wender@fomatoagencia.com.br, wammachado@gmail.com</author>
     <code>whatsappnotifi</code>
     <version>1.0.0</version>
     <file path="catalog/controller/mail/order.php">              
@@ -15,12 +15,17 @@
             <add position="before">
                 <![CDATA[
                     //adaptação modulo whatsapp
-                    public function sendmsg($urldefault,$instance,$token,$phone,$body){
+                    public function sendmsg($urldefault,$token, $openTicket, $queueId, $phone,$body){
                         
 
-                        $url = "$urldefault/$instance/sendMessage?token=$token";
+                       url = $urldefault;
 
-                        $data = array("phone" => "$phone","body" => "$body");
+                        $data = array(
+                            "number" => $phone,
+                            "openTicket" => $openTicket,
+                            "queueId" => $queueId,
+                            "body" => $body
+                        );
 
                         $postdata = json_encode($data);
 
@@ -31,10 +36,14 @@
                         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-                        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                                'Content-Type: application/json',
+                                'Authorization: Bearer '.$token
+                                )
+                            );
                         $result = curl_exec($ch);
                         curl_close($ch);
-                        //return $result;
+                        return $result;
                     }
                 ]]>            
             </add>
@@ -50,9 +59,10 @@
                     if ($this->config->get('module_whatsappnotifi_status')) {
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
+                        $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);
                         $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
-                        $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);                        
-                        $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);                        
+                        $module_whatsappnotifi_openticket = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_openticket', 0);
+                        $module_whatsappnotifi_queueid = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_queueid', 0);                       
                         
                         if($module_whatsappnotifi_store){
 
@@ -205,9 +215,10 @@
                     if ($this->config->get('module_whatsappnotifi_status')) {
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
-                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
                         $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);
-                        $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);
+                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_openticket = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_openticket', 0);
+                        $module_whatsappnotifi_queueid = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_queueid', 0);
                         
                         if($module_whatsappnotifi_store){
                             
@@ -313,9 +324,10 @@
                     if ($this->config->get('module_whatsappnotifi_status')) {
                         
                         $module_whatsappnotifi_store = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_store', $order_info["store_id"]);
-                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
                         $module_whatsappnotifi_url = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_url', 0);
-                        $module_whatsappnotifi_instance = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_instance', 0);
+                        $module_whatsappnotifi_token = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_token', 0);
+                        $module_whatsappnotifi_openticket = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_openticket', 0);
+                        $module_whatsappnotifi_queueid = $this->model_setting_setting->getSettingValue('module_whatsappnotifi_queueid', 0);
                         
                         if($module_whatsappnotifi_store){
                             
@@ -419,7 +431,8 @@
                  @$mail->send();
                     
                  if($enviawhatsapp){
-                    @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephonecli,$msgcli); 
+                    //$urldefault,$token, $openTicket, $queueId, $phone,$body
+                    @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_token, $module_whatsappnotifi_token,$telephonecli,$msgcli); 
 
                     if ($this->config->get('module_whatsappnotifi_notificaloja')) {
                         @$this->sendmsg($module_whatsappnotifi_url, $module_whatsappnotifi_instance, $module_whatsappnotifi_token,$telephone,$msgstore); 

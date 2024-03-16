@@ -37,7 +37,7 @@
                     <div class="row">
                         <div class="form-group col-sm-12">
                             <label class="col-sm-2 control-label " for="input-entry-key">
-                                <span data-toggle="tooltip" title="" data-original-title="Informe os dados da api. consulte em: <b>https://app.chat-api.com/</b>">
+                                <span data-toggle="tooltip" title="" data-original-title="Informe os dados da api. consulte em: <b>https://apiapp2.fulltimechat.com.br/api/messages/send</b>">
                                     Dados da api:
                                 </span>
                             </label>
@@ -49,16 +49,25 @@
                                 <input class="form-control" placeholder="URL padrão api" id="module_whatsappnotifi_url" type="text" name="module_whatsappnotifi_url" value="{{ module_whatsappnotifi_url }}"/>
                             </div>
                             <div class="col-sm-2">
-                                <label>Whatsapp cada. na api:</label>
-                                <input class="form-control" placeholder="Whatsapp cadastrado na api" id="module_whatsappnotifi_numero" type="text" name="module_whatsappnotifi_numero" value="{{ module_whatsappnotifi_numero }}"/>
-                            </div>
-                            <div class="col-sm-2">
-                                <label>Instância:</label>
-                                <input class="form-control" placeholder="Instância" id="module_whatsappnotifi_instance" type="text" name="module_whatsappnotifi_instance" value="{{ module_whatsappnotifi_instance }}"/>
-                            </div>
-                            <div class="col-sm-2">
                                 <label>Token:</label>
                                 <input class="form-control" placeholder="Token" id="module_whatsappnotifi_token" type="text" name="module_whatsappnotifi_token" value="{{ module_whatsappnotifi_token }}"/>
+                            </div>
+                            <div class="col-sm-2">
+                                <label>Abrir Ticket:<small>Utilize sim para abrir e não para não abrir um ticket</small> </label>
+                                <select name="module_whatsappnotifi_openticket" id="module_whatsappnotifi_openticket" class="form-control">
+                                    {% if module_whatsappnotifi_openticket %}
+                                    <option value="1" selected="selected">{{ text_enabled }}</option>
+                                    <option value="0">{{ text_disabled }}</option>
+                                    {% else %}
+                                    <option value="1">{{ text_enabled }}</option>
+                                    <option value="0" selected="selected">{{ text_disabled }}</option>
+                                    {% endif %}
+                                </select>
+                                
+                            </div>
+                            <div class="col-sm-2">
+                                <label>ID da Fila: <small>Informe o ID da fila desejada (obrigatório Abrir Ticket: Sim)</small> </label>
+                                <input class="form-control" placeholder="Instância" id="module_whatsappnotifi_queueid" type="text" name="module_whatsappnotifi_queueid" value="{{ module_whatsappnotifi_queueid }}"/>
                             </div>
                             <div class="col-sm-2">
                                 
@@ -90,6 +99,12 @@
                         </div>
 
                     </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <label>Telefone Para teste:</label>
+                            <input class="form-control" placeholder="EX: 55999999999" id="module_whatsappnotifi_testnumber" type="text" name="module_whatsappnotifi_testnumber" value=""/>
+                        </div>
+                    </div>
                     <div id="retonovalidacao{{ store.store_id }}" class="alert alert-success col-sm-12 hidden"><i class="fa fa-exclamation-circle"></i>
                         <span id="retornovalidacaomsg{{ store.store_id }}"></span>
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -120,15 +135,23 @@
     </div>
 </div>
 <script>
+
+function htmlDecode(input) {
+  var doc = new DOMParser().parseFromString(input, "text/html");
+  return doc.documentElement.textContent;
+}
 function verificastatus(){
 
     var urldefault = $("#module_whatsappnotifi_url").val();
-    var numero = $("#module_whatsappnotifi_numero").val();
-    var instance = $("#module_whatsappnotifi_instance").val();
     var token = $("#module_whatsappnotifi_token").val();
+    var openticket = $("#module_whatsappnotifi_openticket").val();
+    var queueid = $("#module_whatsappnotifi_queueid").val();
+    var testnumber =$("#module_whatsappnotifi_testnumber").val();
+    
+    
     $("#btnvalida").html("Validando....")
 
-    if(instance == "" || token == "" || numero == "" ){
+    if(urldefault == "" || token == "" || testnumber == "" ){
         $("#retonovalidacao").attr("class","alert alert-danger col-sm-12");
         $("#retornovalidacaomsg").html("Informe o número, instância e token");
         $("#btnvalida").html("Verificar")
@@ -138,19 +161,30 @@ function verificastatus(){
         return false;
     }
 
-    var url = urldefault+"/"+instance+"/status?token="+token;
+    var url = htmlDecode("{{ urltest }}");
+    //url.replace("amp;", "");
+    var data = $("#form-module").serialize();
+    var options = {
+        "module_whatsappnotifi_url":urldefault,
+        "module_whatsappnotifi_token":token,
+        "module_whatsappnotifi_openticket":openticket,
+        "module_whatsappnotifi_queueid":queueid,
+        "module_whatsappnotifi_testnumber":testnumber
+    }
 
-    $.getJSON(url, function(data, textStatus, jqXHR){
+    $.post(url, options,function(data, textStatus, jqXHR){
            // alert(data.accountStatus);
+            
             $("#retonovalidacao").attr("class","alert alert-success col-sm-12");
-            $("#retornovalidacaomsg").html(data.accountStatus);
+            $("#retornovalidacaomsg").html(data.mensagem);
             setTimeout(function(){
                 $("#retonovalidacao").attr("class","alert alert-success col-sm-12 hidden")
             } ,5000);
             $("#btnvalida").html("Verificar")
-        })
+        },'json')
         .done(function (data, textStatus, jqXHR) { 
-            console.log(data.accountStatus); 
+            
+            console.log(data.mensagem); 
         })
         .fail(function (jqxhr,settings,ex) { 
 
